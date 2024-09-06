@@ -3,21 +3,25 @@ package WordGame;
 import java.lang.Math;
 
 public class Numbers {
-	private int randomNum;
+	//set up the randomNum int
+	private static int randomNum;
 	
-	public int getRandomNum() {
+	//Getter for the randomNum
+	public static int getRandomNum() {
 		return randomNum;
 	}
 	
-	public void setRandomNum(int randomNumber) {
+	//Setter for the randomNum
+	public static void setRandomNum(int randomNumber) {
 		randomNum = randomNumber;
 	}
 	
-	public void generateNumber() {
+	//Generator for randomNum
+	public static void generateNumber() {
 		randomNum = (int) (Math.random() * 101);
 	}
 
-	public boolean compareNumber(int guess) {
+	public static boolean compareNumber(int guess) {
 		if(guess == randomNum) {
 			System.out.println("Congratulations, you guessed the right number!");
 			return true;
