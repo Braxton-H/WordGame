@@ -1,40 +1,43 @@
 package WordGame;
 
+import java.util.Random;
 import java.util.Scanner;
 
 public class Turn {
-	
-	private static final int winAmount = 500;
-	private static final int lossAmount = 50;
-	
-	//Method for the players turns
-	public boolean takeTurn(Players players, Hosts host) {
-		Scanner keyboard = new Scanner(System.in);
-		
-		// Simulate host prompting player
-        System.out.println(host.getFirstName() + " " + host.getLastName() + " is hosting. " +
-        		players.getFirstName() + " " + players.getLastName() + ", guess a number between 0-100:");
+    
+    private static final int winThreshold = 5;
+    
+    // Method for the players' turns
+    public boolean takeTurn(Players player, Hosts host) {
+        Random random = new Random();
+        Scanner keyboard = new Scanner(System.in);
         
-        // Get player's guess
+        //Have the host prompt the player
+        System.out.println(host.getFirstName() + " " + host.getLastName() + " is hosting. " +
+                player.getFirstName() + " " + player.getLastName() + ", guess a number between 0-100:");
+        
+        //Get player's guess
         int guess = keyboard.nextInt();
         
-        // Check if the guess is correct
+        //Check if the guess is correct
         boolean isCorrect = Numbers.compareNumber(guess);
         
-        // Update player's money based on the guess result
-        if (isCorrect) {
-            players.setCurrentMoney(players.getCurrentMoney() + winAmount);
-            System.out.println("Congratulations, " + players.getFirstName() + " " + players.getLastName() + 
-            		"! You won 500$ with a guess of " + guess + ".");
-            System.out.println(players); // Displays player's name and updated money
-            return true;
+        //Determine whether to award money or a physical prize
+        Award award;
+        int decision = random.nextInt(winThreshold);
+        
+        if (decision < winThreshold / 2) {
+            award = new Money();
         } else {
-            players.setCurrentMoney(players.getCurrentMoney() - lossAmount);
-            System.out.println(players.getFirstName() + " " + players.getLastName() + 
-            		". Your guess of " + guess + " was incorrect. You lost 50$");
-            System.out.println(players); // Displays player's name and updated money
-            return false;
+            award = new Physical();
         }
+        
+        //Update player's current money based on the result
+        int winnings = award.displayWinnings(player, isCorrect);
+        player.setCurrentMoney(player.getCurrentMoney() + winnings);
+        
+        System.out.println(player); //Displays player's name and updated money
+        
+        return isCorrect;
     }
-
 }

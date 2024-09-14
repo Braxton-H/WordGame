@@ -3,67 +3,79 @@ package WordGame;
 import java.util.Scanner;
 
 public class GamePlay {
-	private Person person;
-	
-	//Create the SCanner
-	public static void main (String[] args) {
-		//Set up Scanner
-		Scanner keyboard = new Scanner(System.in);
-		
-		//Set up the turns
-		Turn turn = new Turn();
-		
-		//Keep the player playing until they want to start a new game
-		boolean newGame = true;
-		
-		while(newGame) {
-		
-			// Create an instance of Hosts first name or first and last name
-			System.out.print("Host, Enter your first name: ");
-			String hostFirstName = keyboard.nextLine();
-			System.out.print("Would you like to enter a last name? (Yes/No): ");
-			String hostresponse = keyboard.nextLine();
-			Hosts host;
-			if (hostresponse.equalsIgnoreCase("yes")) {
-				System.out.print("Enter last name: ");
-				String hostLastName = keyboard.nextLine();
-				host = new Hosts(hostFirstName, hostLastName);    
-	    	} else {
-	    		host = new Hosts(hostFirstName);
-	    	}
-	    
-			// Create an instance of Players first name or first and last name
-			System.out.print("Player, Enter your first name: ");
-			String playerFirstName = keyboard.nextLine();
-			System.out.print("Would you like to enter a last name? (Yes/No): ");
-			String playerResponse = keyboard.nextLine();
-			Players player;
-			if (playerResponse.equalsIgnoreCase("yes")) {
-				System.out.print("Enter last name: ");
-				String playerLastName = keyboard.nextLine();
-				player = new Players(playerFirstName, playerLastName);    
-			} else {
-				player = new Players(playerFirstName);
-			}
-			
-			//Keeps the player playing in the current round until said otherwise
-			boolean keepPlaying = true;
+    private Person person;
+    private static final int numPlayers = 3;
+    
+    public static void main(String[] args) {
+        //Set up Scanner
+        Scanner keyboard = new Scanner(System.in);
+        
+        //Set up the turns
+        Turn turn = new Turn();
+        
+        //Create an array of players
+        Players[] currentPlayers = new Players[numPlayers];
+        
+        //Keep the player playing until they want to start a new game
+        boolean newGame = true;
+        
+        while (newGame) {
+            // Create the Host
+            System.out.print("Host, Enter your first name: ");
+            String hostFirstName = keyboard.nextLine();
+            System.out.print("Would you like to enter a last name? (Yes/No): ");
+            String hostResponse = keyboard.nextLine();
+            Hosts host;
+            if (hostResponse.equalsIgnoreCase("yes")) {
+                System.out.print("Enter last name: ");
+                String hostLastName = keyboard.nextLine();
+                host = new Hosts(hostFirstName, hostLastName);
+            } else {
+                host = new Hosts(hostFirstName);
+            }
             
-			//This while loop keeps the random number set for the specific round
+            //Create the Players
+            for (int i = 0; i < numPlayers; i++) {
+                System.out.print("Player " + (i + 1) + ", Enter your first name: ");
+                String playerFirstName = keyboard.nextLine();
+                System.out.print("Would you like to enter a last name? (Yes/No): ");
+                String playerResponse = keyboard.nextLine();
+                Players player;
+                if (playerResponse.equalsIgnoreCase("yes")) {
+                    System.out.print("Enter last name: ");
+                    String playerLastName = keyboard.nextLine();
+                    player = new Players(playerFirstName, playerLastName);
+                } else {
+                    player = new Players(playerFirstName);
+                }
+                currentPlayers[i] = player;
+            }
+            
+            //Keeps the game running for the current round
+            boolean keepPlaying = true;
+            
             while (keepPlaying) {
-            	
-                // New number for each round
+                //New number for each round
                 host.randomizeNum();
                 
-                //condition that must be met for player to win
-                boolean winCondition = false;
+                //Game loop until all players have taken their turn
+                boolean roundOver = false;
+                int currentPlayerIndex = 0;
                 
-                // Game loop until the player guesses correctly
-                while (!winCondition) {
-                    winCondition = turn.takeTurn(player, host);
+                while (!roundOver) {
+                    //Let the current player take their turn
+                    boolean winCondition = turn.takeTurn(currentPlayers[currentPlayerIndex], host);
+                    
+                    //Move to the next player
+                    currentPlayerIndex = (currentPlayerIndex + 1) % numPlayers;
+                    
+                    //Check if all players have taken their turns
+                    if (currentPlayerIndex == 0) {
+                        roundOver = true;
+                    }
                 }
                 
-                // Ask the player if they want to play another round
+                //Ask the players if they want to play another round
                 System.out.print("Do you want to play another round? (Yes/No): ");
                 String playAgain = keyboard.nextLine();
                 
@@ -73,7 +85,7 @@ public class GamePlay {
                 }
             }
             
-            // Ask if the player wants to start a new game
+            //Ask if the players want to start a new game
             System.out.print("Do you want to start a new game? (Yes/No): ");
             String newGameResponse = keyboard.nextLine();
             
@@ -82,5 +94,7 @@ public class GamePlay {
                 System.out.println("Goodbye!");
             }
         }
-	}
+        
+        keyboard.close();
+    }
 }
