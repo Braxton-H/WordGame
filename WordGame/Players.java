@@ -12,7 +12,7 @@ public class Players extends Person {
 	}
 	
 	public Players (String fName, String lName) {
-		super(fName, lName); // call to the parent class (person constructor for first and last name
+		super(fName, lName); //call to the parent class (person constructor for first and last name
 		currentMoney = 1000;
 	}
 	
