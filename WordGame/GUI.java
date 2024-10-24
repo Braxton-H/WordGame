@@ -231,7 +231,7 @@ public class GUI extends JFrame {
             }
 
             if (currentPlayerIndex == -1) {
-            	SoundHandler.RunMusic("/Java_II_Class/Sounds/GameStartMusic.wav"); //I followed the video exactly in the lesson and I always get an error path and I have no idea why. I tried so many iterations.
+            	//SoundHandler.RunMusic("/Java_II_Class/Sounds/GameStartMusic.wav"); //I followed the video exactly in the lesson and I always get an error path and I have no idea why. I tried so many iterations.
                 guessField.setVisible(true);
                 ((JButton) e.getSource()).setText("Next Turn");
                 currentPlayerIndex = 0;
