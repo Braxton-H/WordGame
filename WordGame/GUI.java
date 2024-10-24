@@ -1,5 +1,8 @@
 package WordGame;
 
+import javax.sound.sampled.*;
+import java.io.File;
+import java.io.IOException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -17,6 +20,8 @@ public class GUI extends JFrame {
     private JButton startTurnButton;
     private JTextArea messageArea;
     private JCheckBox saveMessagesCheckbox;
+    private Clip backgroundMusicSong;
+    private JLabel prizeImageLabel;
     
     private ArrayList<Players> playersList = new ArrayList<>();
     private Hosts host;
@@ -45,10 +50,19 @@ public class GUI extends JFrame {
         gameMenu.add(setHostItem);
         menuBar.add(gameMenu);
 
+        //Physical prizes images
+        prizeImageLabel = new JLabel();
+        prizeImageLabel.setVisible(false);
+        add(prizeImageLabel, BorderLayout.CENTER);
+        
         //the about menu
         JMenu aboutMenu = new JMenu("About");
         aboutMenu.setMnemonic('A');
         JMenuItem layoutItem = new JMenuItem("Layout");
+        
+        JMenuItem attributionItem = new JMenuItem("Attribution");
+        attributionItem.addActionListener(e -> showAttributionInfo());
+        aboutMenu.add(attributionItem);
 
         layoutItem.addActionListener(e -> showLayoutInfo());
 
@@ -70,7 +84,7 @@ public class GUI extends JFrame {
         statusPanel.add(turnLabel);
 
         JPanel inputPanel = new JPanel();
-        guessField = new JTextField(10);
+        guessField = new JTextField(5);
         guessField.setVisible(false);
         JButton startTurnButton = new JButton("Start Game");
 
@@ -79,7 +93,7 @@ public class GUI extends JFrame {
         inputPanel.add(startTurnButton);
 
         //area the messages are at
-        messageArea = new JTextArea(5, 30);
+        messageArea = new JTextArea(5, 20);
         messageArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(messageArea);
         JPanel messagePanel = new JPanel();
@@ -102,7 +116,7 @@ public class GUI extends JFrame {
 
         setVisible(true);
     }
-
+    
     private class AddPlayerAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -118,7 +132,40 @@ public class GUI extends JFrame {
             }
         }
     }
+    
+    private void showAttributionInfo() {
+        JDialog dialog = new JDialog(this, "Image Attribution", true);
+        dialog.setSize(600, 400);
+        dialog.setLayout(new GridLayout(3, 2));
 
+        String[] imagePaths = {
+            "Pictures\\Bicycle.jpg",
+            "Pictures\\Headphones.jpg",
+            "Pictures\\LapTop.jpg",
+            "Pictures\\SmartPhone.jpg",
+            "Pictures\\Television.jpg",
+            "Sounds\\GameStartMusic.wav"
+        };
+        
+        int adjustedWith = 200;
+        int adjustedHeight = 100;
+
+        for (String imagePath : imagePaths) {
+            try {
+                ImageIcon originalIcon = new ImageIcon(imagePath);
+                Image scaledImage = originalIcon.getImage().getScaledInstance(adjustedWith, adjustedHeight, Image.SCALE_SMOOTH);
+                JLabel imageLabel = new JLabel(new ImageIcon(scaledImage));
+                imageLabel.setHorizontalAlignment(JLabel.CENTER);
+                dialog.add(imageLabel);
+            } catch (Exception e) {
+                logMessage("Error loading image: " + imagePath + " - " + e.getMessage());
+            }
+        }
+
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+    
     private class SetHostAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -136,6 +183,43 @@ public class GUI extends JFrame {
             logMessage("Set host: " + host);
         }
     }
+    
+    private void displayPrizeImage(String imagePath) {
+        try {
+            int adjustedWidth = 150;
+            int adjustedHeight = 150;
+
+            ImageIcon prizeImage = new ImageIcon(imagePath);
+            Image scaledImage = prizeImage.getImage().getScaledInstance(adjustedWidth, adjustedHeight, Image.SCALE_SMOOTH);
+            
+            prizeImageLabel.setIcon(new ImageIcon(scaledImage));
+            prizeImageLabel.setBounds((getWidth() - adjustedWidth) / 2, -adjustedHeight, adjustedWidth, adjustedHeight);
+            prizeImageLabel.setVisible(true);
+
+            new Timer(10, e -> {
+                if (prizeImageLabel.getY() < (getHeight() / 2) - (adjustedHeight / 2)) {
+                    prizeImageLabel.setLocation(prizeImageLabel.getX(), prizeImageLabel.getY() + 5);
+                } else {
+                    ((Timer) e.getSource()).stop();
+                    new Timer(1000, e2 -> slideOutPrizeImage()).start();
+                }
+            }).start();
+
+        } catch (Exception e) {
+            logMessage("Error displaying prize image: " + e.getMessage());
+        }
+    }
+    
+    private void slideOutPrizeImage() {
+        new Timer(10, e -> {
+            if (prizeImageLabel.getY() > getHeight()) {
+                prizeImageLabel.setVisible(false);
+                ((Timer) e.getSource()).stop();
+            } else {
+                prizeImageLabel.setLocation(prizeImageLabel.getX(), prizeImageLabel.getY() + 5);
+            }
+        }).start();
+    }
 
     private class StartGameAction implements ActionListener {
         @Override
@@ -147,6 +231,7 @@ public class GUI extends JFrame {
             }
 
             if (currentPlayerIndex == -1) {
+            	SoundHandler.RunMusic("/Java_II_Class/Sounds/GameStartMusic.wav"); //I followed the video exactly in the lesson and I always get an error path and I have no idea why. I tried so many iterations.
                 guessField.setVisible(true);
                 ((JButton) e.getSource()).setText("Next Turn");
                 currentPlayerIndex = 0;
@@ -166,27 +251,29 @@ public class GUI extends JFrame {
                 try {
                     correctGuess = phrases.findLetters(guess);
                     playingPhraseLabel.setText("Current Phrase: " + phrases.getPlayingPhrase());
-                    String message = playersList.get(currentPlayerIndex).getFirstName();
+                    String playerMessage = playersList.get(currentPlayerIndex).getFirstName();
+                    StringBuilder endRoundMessage = new StringBuilder();
 
                     if (correctGuess) {
                         if (Math.random() < 0.2) {
                             physical.displayWinnings(playersList.get(currentPlayerIndex), correctGuess);
-                            logMessage(" You won a physical prize!");
+                            displayPrizeImage("C:\\Users\\braxt\\eclipse-workspace\\Java_II_Class\\Pictures\\Winner.png");
+                            endRoundMessage.append(" You won a physical prize!");
                         } else {
-                            //Win or lsoe money instead
                             int moneyChange = new Money().displayWinnings(playersList.get(currentPlayerIndex), correctGuess);
                             playersList.get(currentPlayerIndex).setCurrentMoney(playersList.get(currentPlayerIndex).getCurrentMoney() + moneyChange);
-                            logMessage(" You won $" + moneyChange + "!");
+                            endRoundMessage.append(" You won $" + moneyChange + "!");
                             updatePlayersLabel();
                         }
                     } else {
                         int moneyChange = new Money().displayWinnings(playersList.get(currentPlayerIndex), correctGuess);
                         playersList.get(currentPlayerIndex).setCurrentMoney(playersList.get(currentPlayerIndex).getCurrentMoney() + moneyChange);
-                        logMessage(" You lost $" + moneyChange + "!");
+                        endRoundMessage.append(" You lost $" + moneyChange + "!");
                         updatePlayersLabel();
                     }
 
-                    logMessage(message);
+                    logMessage(playerMessage + endRoundMessage.toString());
+                    
                     currentPlayerIndex = (currentPlayerIndex + 1) % playersList.size();
                     
                     //Check if all Letters are guessed
