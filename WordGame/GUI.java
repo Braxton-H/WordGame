@@ -231,7 +231,7 @@ public class GUI extends JFrame {
             }
 
             if (currentPlayerIndex == -1) {
-            	//SoundHandler.RunMusic("/Java_II_Class/Sounds/GameStartMusic.wav"); //I followed the video exactly in the lesson and I always get an error path and I have no idea why. I tried so many iterations.
+            	SoundHandler.RunMusic("Sounds/GameStartMusic.WAV"); //I followed the video exactly in the lesson and I always get an error path and I have no idea why. I tried so many iterations.
                 guessField.setVisible(true);
                 ((JButton) e.getSource()).setText("Next Turn");
                 currentPlayerIndex = 0;
@@ -256,8 +256,11 @@ public class GUI extends JFrame {
 
                     if (correctGuess) {
                         if (Math.random() < 0.2) {
-                            physical.displayWinnings(playersList.get(currentPlayerIndex), correctGuess);
-                            displayPrizeImage("C:\\Users\\braxt\\eclipse-workspace\\Java_II_Class\\Pictures\\Winner.png");
+                            int prizeIndex = physical.displayWinnings(playersList.get(currentPlayerIndex), correctGuess);
+                            String prizeImagePath = physical.getPrizeImagePath(prizeIndex);
+                            if (prizeImagePath != null) {
+                                displayPrizeImage(prizeImagePath);
+                            }
                             endRoundMessage.append(" You won a physical prize!");
                         } else {
                             int moneyChange = new Money().displayWinnings(playersList.get(currentPlayerIndex), correctGuess);
@@ -267,7 +270,7 @@ public class GUI extends JFrame {
                         }
                     } else {
                         int moneyChange = new Money().displayWinnings(playersList.get(currentPlayerIndex), correctGuess);
-                        playersList.get(currentPlayerIndex).setCurrentMoney(playersList.get(currentPlayerIndex).getCurrentMoney() + moneyChange);
+                        playersList.get(currentPlayerIndex).setCurrentMoney(playersList.get(currentPlayerIndex).getCurrentMoney() - moneyChange);
                         endRoundMessage.append(" You lost $" + moneyChange + "!");
                         updatePlayersLabel();
                     }
